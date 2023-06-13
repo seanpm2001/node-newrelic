@@ -2,14 +2,23 @@
   "repository": "newrelic/node-newrelic",
   "entries": [
     {
+      "version": "10.3.0",
+      "changes": {
+        "security": [],
+        "bugfixes": [],
+        "features": [
+          "Added IAST security agent capabilities when security.agent.enabled is true"
+        ]
+      }
+    },
+    {
       "version": "10.2.0",
       "changes": {
         "security": [],
-        "bugfixes": [
-          "log execArgs at the debug level"
-        ],
+        "bugfixes": [],
         "features": [
-          "added supportability metrics to indicate how agent was loaded and if --enable-source-maps was passed to Node.js runtime"
+          "added supportability metrics to indicate how agent was loaded and if --enable-source-maps was passed to Node.js runtime",
+          "log execArgs at the debug level"
         ]
       }
     },
