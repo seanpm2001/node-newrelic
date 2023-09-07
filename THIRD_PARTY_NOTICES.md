@@ -1892,7 +1892,7 @@ This product includes source derived from [@newrelic/newrelic-oss-cli](https://g
 
 ### @newrelic/test-utilities
 
-This product includes source derived from [@newrelic/test-utilities](https://github.com/newrelic/node-test-utilities) ([v8.0.0](https://github.com/newrelic/node-test-utilities/tree/v8.0.0)), distributed under the [Apache-2.0 License](https://github.com/newrelic/node-test-utilities/blob/v8.0.0/LICENSE):
+This product includes source derived from [@newrelic/test-utilities](https://github.com/newrelic/node-test-utilities) ([v8.1.0](https://github.com/newrelic/node-test-utilities/tree/v8.1.0)), distributed under the [Apache-2.0 License](https://github.com/newrelic/node-test-utilities/blob/v8.1.0/LICENSE):
 
 ```
                                  Apache License
@@ -2218,7 +2218,7 @@ THE SOFTWARE.
 
 ### c8
 
-This product includes source derived from [c8](https://github.com/bcoe/c8) ([v7.14.0](https://github.com/bcoe/c8/tree/v7.14.0)), distributed under the [ISC License](https://github.com/bcoe/c8/blob/v7.14.0/LICENSE.txt):
+This product includes source derived from [c8](https://github.com/bcoe/c8) ([v8.0.1](https://github.com/bcoe/c8/tree/v8.0.1)), distributed under the [ISC License](https://github.com/bcoe/c8/blob/v8.0.1/LICENSE.txt):
 
 ```
 Copyright (c) 2017, Contributors

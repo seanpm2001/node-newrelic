@@ -1,22 +1,20 @@
 /*
- * Copyright 2021 New Relic Corporation. All rights reserved.
+ * Copyright 2023 New Relic Corporation. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 
 'use strict'
 
-const tap = require('tap')
-const { DESTINATIONS } = require('../../../lib/config/attribute-filter')
 const helper = require('../../lib/agent_helper')
 const metrics = require('../../lib/metrics_helper')
+const { DESTINATIONS } = require('../../../lib/config/attribute-filter')
+const tap = require('tap')
 const http = require('http')
-const https = require('https')
+const semver = require('semver')
 
-tap.test('Undici request tests', (t) => {
+tap.test('fetch', { skip: semver.lte(process.version, '18.0.0') }, function (t) {
   t.autoend()
-
   let agent
-  let undici
   let server
   let REQUEST_URL
   let HOST
@@ -32,8 +30,8 @@ tap.test('Undici request tests', (t) => {
         }, delayInMs)
       } else if (req.url.includes('/status')) {
         const parts = req.url.split('/')
-        const statusCode = parts[parts.length - 1]
-        res.writeHead(statusCode)
+        const status = parts[parts.length - 1]
+        res.writeHead(status)
         res.end()
       } else {
         res.writeHead(200)
@@ -51,7 +49,6 @@ tap.test('Undici request tests', (t) => {
   t.before(() => {
     agent = helper.instrumentMockedAgent()
 
-    undici = require('undici')
     server = createServer()
   })
 
@@ -61,8 +58,7 @@ tap.test('Undici request tests', (t) => {
   })
 
   t.test('should not fail if request not in a transaction', async (t) => {
-    const { statusCode } = await undici.request(REQUEST_URL, {
-      path: '/post',
+    const { status } = await fetch(`${REQUEST_URL}/post`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application.json'
@@ -70,21 +66,20 @@ tap.test('Undici request tests', (t) => {
       body: Buffer.from(`{"key":"value"}`)
     })
 
-    t.equal(statusCode, 200)
+    t.equal(status, 200)
     t.end()
   })
 
   t.test('should properly name segments', (t) => {
     helper.runInTransaction(agent, async (tx) => {
-      const { statusCode } = await undici.request(REQUEST_URL, {
-        path: '/post',
+      const { status } = await fetch(`${REQUEST_URL}/post`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application.json'
         },
         body: Buffer.from(`{"key":"value"}`)
       })
-      t.equal(statusCode, 200)
+      t.equal(status, 200)
 
       metrics.assertSegments(tx.trace.root, [`External/${HOST}/post`], { exact: false })
       tx.end()
@@ -92,49 +87,10 @@ tap.test('Undici request tests', (t) => {
     })
   })
 
-  t.test('should add HTTPS port to segment name when provided', async (t) => {
-    const [key, cert, ca] = await helper.withSSL()
-    const httpsServer = https.createServer({ key, cert }, (req, res) => {
-      res.write('SSL response')
-      res.end()
-    })
-
-    t.teardown(() => {
-      httpsServer.close()
-    })
-
-    httpsServer.listen(0)
-
-    await helper.runInTransaction(agent, async (transaction) => {
-      const { port } = httpsServer.address()
-
-      const client = new undici.Client(`https://localhost:${port}`, {
-        tls: {
-          ca
-        }
-      })
-
-      t.teardown(() => {
-        client.close()
-      })
-
-      await client.request({ path: '/', method: 'GET' })
-
-      metrics.assertSegments(transaction.trace.root, [`External/localhost:${port}/`], {
-        exact: false
-      })
-
-      transaction.end()
-    })
-  })
-
   t.test('should add attributes to external segment', (t) => {
     helper.runInTransaction(agent, async (tx) => {
-      const { statusCode } = await undici.request(REQUEST_URL, {
-        path: '/get?a=b&c=d',
-        method: 'GET'
-      })
-      t.equal(statusCode, 200)
+      const { status } = await fetch(`${REQUEST_URL}/get?a=b&c=d`)
+      t.equal(status, 200)
       const segment = metrics.findSegment(tx.trace.root, `External/${HOST}/get`)
       const attrs = segment.getAttributes()
       t.equal(attrs.url, `${REQUEST_URL}/get`)
@@ -154,11 +110,8 @@ tap.test('Undici request tests', (t) => {
     // make sure metric aggregator is empty before asserting metrics
     agent.metrics.clear()
     helper.runInTransaction(agent, async (tx) => {
-      const { statusCode } = await undici.request(REQUEST_URL, {
-        path: '/get?a=b&c=d',
-        method: 'GET'
-      })
-      t.equal(statusCode, 200)
+      const { status } = await fetch(`${REQUEST_URL}/get?a=b&c=d`)
+      t.equal(status, 200)
       tx.end()
 
       const expectedNames = [
@@ -172,7 +125,7 @@ tap.test('Undici request tests', (t) => {
         t.equal(
           metric.callCount,
           1,
-          `should record unscoped external metric of ${metricName} for an undici request`
+          `should record unscoped external metric of ${metricName} for an fetch`
         )
       })
 
@@ -182,25 +135,23 @@ tap.test('Undici request tests', (t) => {
 
   t.test('concurrent requests', (t) => {
     helper.runInTransaction(agent, async (tx) => {
-      const req1 = undici.request(REQUEST_URL, {
-        path: '/post',
+      const req1 = fetch(`${REQUEST_URL}/post`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application.json'
         },
         body: Buffer.from(`{"key":"value"}`)
       })
-      const req2 = undici.request(REQUEST_URL, {
-        path: '/put',
+      const req2 = fetch(`${REQUEST_URL}/put`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application.json'
         },
         body: Buffer.from(`{"key":"value"}`)
       })
-      const [{ statusCode }, { statusCode: statusCode2 }] = await Promise.all([req1, req2])
-      t.equal(statusCode, 200)
-      t.equal(statusCode2, 200)
+      const [{ status }, { status: status2 }] = await Promise.all([req1, req2])
+      t.equal(status, 200)
+      t.equal(status2, 200)
       metrics.assertSegments(tx.trace.root, [`External/${HOST}/post`, `External/${HOST}/put`], {
         exact: false
       })
@@ -212,12 +163,11 @@ tap.test('Undici request tests', (t) => {
   t.test('invalid host', (t) => {
     helper.runInTransaction(agent, async (tx) => {
       try {
-        await undici.request('https://invalidurl', {
-          path: '/foo',
+        await fetch('https://invalidurl/foo', {
           method: 'GET'
         })
       } catch (err) {
-        t.match(err.message, /getaddrinfo.*invalidurl/)
+        t.equal(err.message, 'fetch failed')
         metrics.assertSegments(tx.trace.root, ['External/invalidurl/foo'], { exact: false })
         t.equal(tx.exceptions.length, 1)
         tx.end()
@@ -230,8 +180,7 @@ tap.test('Undici request tests', (t) => {
     const abortController = new AbortController()
     helper.runInTransaction(agent, async (tx) => {
       try {
-        const req = undici.request(REQUEST_URL, {
-          path: '/delay/1000',
+        const req = fetch(`${REQUEST_URL}/delay/1000`, {
           signal: abortController.signal
         })
         setTimeout(() => {
@@ -241,7 +190,7 @@ tap.test('Undici request tests', (t) => {
       } catch (err) {
         metrics.assertSegments(tx.trace.root, [`External/${HOST}/delay/1000`], { exact: false })
         t.equal(tx.exceptions.length, 1)
-        t.equal(tx.exceptions[0].error.message, 'Request aborted')
+        t.equal(tx.exceptions[0].error.name, 'AbortError')
         tx.end()
         t.end()
       }
@@ -261,7 +210,7 @@ tap.test('Undici request tests', (t) => {
 
     helper.runInTransaction(agent, async (transaction) => {
       const { port } = socketEndServer.address()
-      const req = undici.request(`http://localhost:${port}`)
+      const req = fetch(`http://localhost:${port}`)
 
       try {
         await req
@@ -285,85 +234,11 @@ tap.test('Undici request tests', (t) => {
 
   t.test('400 status', (t) => {
     helper.runInTransaction(agent, async (tx) => {
-      const { statusCode } = await undici.request(REQUEST_URL, {
-        path: '/status/400',
-        method: 'GET'
-      })
-      t.equal(statusCode, 400)
+      const { status } = await fetch(`${REQUEST_URL}/status/400`)
+      t.equal(status, 400)
       metrics.assertSegments(tx.trace.root, [`External/${HOST}/status/400`], { exact: false })
       tx.end()
       t.end()
-    })
-  })
-
-  t.test('fetch', (t) => {
-    helper.runInTransaction(agent, async (tx) => {
-      const res = await undici.fetch(REQUEST_URL)
-      t.equal(res.status, 200)
-      metrics.assertSegments(tx.trace.root, [`External/${HOST}/`], { exact: false })
-      tx.end()
-      t.end()
-    })
-  })
-
-  t.test('stream', (t) => {
-    const { Writable } = require('stream')
-    helper.runInTransaction(agent, async (tx) => {
-      await undici.stream(
-        REQUEST_URL,
-        {
-          path: '/get'
-        },
-        ({ statusCode }) => {
-          t.equal(statusCode, 200)
-          return new Writable({
-            write(chunk, encoding, callback) {
-              callback()
-            }
-          })
-        }
-      )
-      metrics.assertSegments(tx.trace.root, [`External/${HOST}/get`], { exact: false })
-      tx.end()
-      t.end()
-    })
-  })
-
-  t.test('pipeline', (t) => {
-    const { pipeline, PassThrough, Readable, Writable } = require('stream')
-    helper.runInTransaction(agent, async (tx) => {
-      pipeline(
-        new Readable({
-          read() {
-            this.push(Buffer.from('undici'))
-            this.push(null)
-          }
-        }),
-        undici.pipeline(
-          REQUEST_URL,
-          {
-            path: '/get'
-          },
-          ({ statusCode, body }) => {
-            t.equal(statusCode, 200)
-            return pipeline(body, new PassThrough(), () => {})
-          }
-        ),
-        new Writable({
-          write(chunk, _, callback) {
-            callback()
-          },
-          final(callback) {
-            callback()
-          }
-        }),
-        (err) => {
-          t.error(err)
-          metrics.assertSegments(tx.trace.root, [`External/${HOST}/get`], { exact: false })
-          tx.end()
-          t.end()
-        }
-      )
     })
   })
 })

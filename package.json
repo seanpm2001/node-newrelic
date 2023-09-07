@@ -1,6 +1,6 @@
 {
   "name": "newrelic",
-  "version": "11.0.0",
+  "version": "11.1.0",
   "author": "New Relic Node.js agent team <nodejs@newrelic.com>",
   "license": "Apache-2.0",
   "contributors": [
@@ -202,12 +202,12 @@
   "devDependencies": {
     "@newrelic/eslint-config": "^0.3.0",
     "@newrelic/newrelic-oss-cli": "^0.1.2",
-    "@newrelic/test-utilities": "^8.0.0",
+    "@newrelic/test-utilities": "^8.1.0",
     "@octokit/rest": "^18.0.15",
     "@slack/bolt": "^3.7.0",
     "ajv": "^6.12.6",
     "async": "^3.2.4",
-    "c8": "^7.14.0",
+    "c8": "^8.0.1",
     "chai": "^4.1.2",
     "clean-jsdoc-theme": "^4.2.4",
     "commander": "^7.0.0",
