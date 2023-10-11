@@ -1,0 +1,21 @@
+{
+  "name": "elasticsearch-tests",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=16"
+  },
+  "tests": [
+    {
+      "engines": {
+        "node": ">=16 <20"
+      },
+      "dependencies": {
+        "@elastic/elasticsearch": ">=8.0.0"
+      },
+      "files": [
+        "elasticsearch.tap.js"
+      ]
+    }
+  ]
+}
