@@ -47,6 +47,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [lts/*]
 
@@ -67,6 +68,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [16.x, 18.x, 20.x]
 
@@ -91,6 +93,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [16.x, 18.x, 20.x]
 
@@ -115,9 +118,10 @@ jobs:
   versioned-internal:
     needs: skip_if_release
     if: needs.skip_if_release.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.ref == 'refs/heads/main' && vars.NR_RUNNER || 'ubuntu-latest' }}
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [16.x, 18.x, 20.x]
 
@@ -135,7 +139,8 @@ jobs:
       run: TEST_CHILD_TIMEOUT=600000 npm run versioned:internal
       env:
         VERSIONED_MODE: ${{ github.ref == 'refs/heads/main' && '--minor' || '--major' }}
-        JOBS: 4 # 2 per CPU seems to be the sweet spot in GHA (July 2022)
+        # Run more jobs when using larger runner, otherwise 2 per CPU seems to be the sweet spot in GHA default runners(July 2022)
+        JOBS: ${{ github.ref == 'refs/heads/main' && vars.NR_RUNNER && 16 ||  4 }}
         C8_REPORTER: lcovonly
     - name: Archive Versioned Test Coverage
       uses: actions/upload-artifact@v3
@@ -161,9 +166,10 @@ jobs:
   versioned-external:
     needs: skip_if_release
     if: needs.skip_if_release.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.ref == 'refs/heads/main' && vars.NR_RUNNER || 'ubuntu-latest' }}
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [16.x, 18.x, 20.x]
 
@@ -179,7 +185,8 @@ jobs:
       run: TEST_CHILD_TIMEOUT=600000 npm run versioned:external
       env:
         VERSIONED_MODE: ${{ github.ref == 'refs/heads/main' && '--minor' || '--major' }}
-        JOBS: 4 # 2 per CPU seems to be the sweet spot in GHA (July 2022)
+        # Run more jobs when using larger runner, otherwise 2 per CPU seems to be the sweet spot in GHA default runners(July 2022)
+        JOBS: ${{ github.ref == 'refs/heads/main' && vars.NR_RUNNER && 16 ||  4 }}
   codecov:
     needs: [unit, integration, versioned-internal]
     runs-on: ubuntu-latest
