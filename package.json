@@ -1,6 +1,6 @@
 {
   "name": "newrelic",
-  "version": "11.3.0",
+  "version": "11.4.0",
   "author": "New Relic Node.js agent team <nodejs@newrelic.com>",
   "license": "Apache-2.0",
   "contributors": [
@@ -146,7 +146,7 @@
     "bench": "node ./bin/run-bench.js",
     "docker-env": "./bin/docker-env-vars.sh",
     "docs": "npm ci && jsdoc -c ./jsdoc-conf.json --private -r .",
-    "integration": "npm run prepare-test && npm run sub-install && time c8 -o ./coverage/integration tap --test-regex='(\\/|^test\\/integration\\/.*\\.tap\\.js)$' --timeout=300 --no-coverage --reporter classic",
+    "integration": "npm run prepare-test && npm run sub-install && time c8 -o ./coverage/integration tap --test-regex='(\\/|^test\\/integration\\/.*\\.tap\\.js)$' --timeout=600 --no-coverage --reporter classic",
     "prepare-test": "npm run ssl && npm run docker-env",
     "lint": "eslint ./*.{js,mjs} lib test bin examples",
     "lint:fix": "eslint --fix, ./*.{js,mjs} lib test bin examples",
@@ -181,12 +181,12 @@
     "newrelic-naming-rules": "./bin/test-naming-rules.js"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.8.10",
+    "@grpc/grpc-js": "^1.9.4",
     "@grpc/proto-loader": "^0.7.5",
-    "@newrelic/aws-sdk": "^7.0.0",
-    "@newrelic/koa": "^8.0.0",
+    "@newrelic/aws-sdk": "^7.0.2",
+    "@newrelic/koa": "^8.0.1",
     "@newrelic/security-agent": "0.3.0",
-    "@newrelic/superagent": "^7.0.0",
+    "@newrelic/superagent": "^7.0.1",
     "@tyriar/fibonacci-heap": "^2.0.7",
     "concat-stream": "^2.0.0",
     "https-proxy-agent": "^7.0.1",
