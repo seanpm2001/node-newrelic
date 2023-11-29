@@ -23,6 +23,7 @@ const {
   assignCLMSymbol,
   addCLMAttributes: maybeAddCLMAttributes
 } = require('./lib/util/code-level-metrics')
+const { LlmFeedbackMessage } = require('./lib/llm-events/openai')
 
 const ATTR_DEST = require('./lib/config/attribute-filter').DESTINATIONS
 const MODULE_TYPE = require('./lib/shim/constants').MODULE_TYPE
@@ -30,6 +31,7 @@ const NAMES = require('./lib/metrics/names')
 const obfuscate = require('./lib/util/sql/obfuscate')
 const { DESTINATIONS } = require('./lib/config/attribute-filter')
 const parse = require('module-details-from-path')
+const { isSimpleObject } = require('./lib/util/objects')
 
 /*
  *
@@ -59,7 +61,7 @@ const CUSTOM_EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/
 
 /**
  * The exported New Relic API. This contains all of the functions meant to be
- * used by New Relic customers. For now, that means transaction naming.
+ * used by New Relic customers.
  *
  * You do not need to directly instantiate this class, as an instance of this is
  * the return from `require('newrelic')`.
@@ -1272,9 +1274,9 @@ API.prototype.recordCustomEvent = function recordCustomEvent(eventType, attribut
     fail = true
   }
   // If they don't pass an attributes object, or the attributes argument is not
-  // an object, or if it is an object and but is actually an array, log a
+  // an object, or if it is an object but is actually an array, log a
   // warning and set the fail bit.
-  if (!attributes || typeof attributes !== 'object' || Array.isArray(attributes)) {
+  if (isSimpleObject(attributes) === false) {
     logger.warn(
       'recordCustomEvent requires an object for its second argument, got %s (%s)',
       stringify(attributes),
@@ -1537,6 +1539,85 @@ API.prototype.getTraceMetadata = function getTraceMetadata() {
 }
 
 /**
+ * Get a set of tracked identifiers
+ *
+ * @param {object} params Input parameters.
+ * @param {string} params.responseId The LLM generated identifier for the
+ * response.
+ * @returns {LlmTrackedIds|undefined} The tracked identifiers.
+ */
+API.prototype.getLlmMessageIds = function getLlmMessageIds({ responseId } = {}) {
+  this.agent.metrics
+    .getOrCreateMetric(`${NAMES.SUPPORTABILITY.API}/getLlmMessageIds`)
+    .incrementCallCount()
+
+  if (this.agent.config?.ai_monitoring?.enabled !== true) {
+    logger.warn('getLlmMessageIds invoked but ai_monitoring is disabled.')
+    return
+  }
+
+  const tx = this.agent.tracer.getTransaction()
+  if (!tx) {
+    logger.warn('getLlmMessageIds must be called within the scope of a transaction.')
+    return
+  }
+  return tx.llm.responses.get(responseId)
+}
+
+/**
+ * Record a LLM feedback event which can be viewed in New Relic API Monitoring.
+ *
+ * @param {object} params Input parameters.
+ * @param {string} [params.conversationId=""] If available, the unique
+ * identifier for the LLM conversation that triggered the event.
+ * @param {string} [params.requestId=""] If available, the request identifier
+ * from the remote service.
+ * @param {string} params.messageId Identifier for the message being rated.
+ * Obtained from {@link getLlmMessageIds}.
+ * @param {string} params.category A tag for the event.
+ * @param {string} params.rating A indicator of how useful the message was.
+ * @param {string} [params.message=""] The message that triggered the event.
+ * @param {object} [params.metadata={}] Additional key-value pairs to associate
+ * with the recorded event.
+ */
+API.prototype.recordLlmFeedbackEvent = function recordLlmFeedbackEvent({
+  conversationId = '',
+  requestId = '',
+  messageId,
+  category,
+  rating,
+  message = '',
+  metadata = {}
+} = {}) {
+  this.agent.metrics
+    .getOrCreateMetric(`${NAMES.SUPPORTABILITY.API}/recordLlmFeedbackEvent`)
+    .incrementCallCount()
+
+  if (this.agent.config?.ai_monitoring?.enabled !== true) {
+    logger.warn('recordLlmFeedbackEvent invoked but ai_monitoring is disabled.')
+    return
+  }
+
+  const tx = this.agent.tracer.getTransaction()
+  if (!tx) {
+    logger.warn(
+      'No message feedback events will be recorded. recordLlmFeedbackEvent must be called within the scope of a transaction.'
+    )
+    return
+  }
+
+  const feedback = new LlmFeedbackMessage({
+    conversationId,
+    requestId,
+    messageId,
+    category,
+    rating,
+    message
+  })
+  this.recordCustomEvent('LlmFeedbackMessage', { ...metadata, ...feedback })
+}
+
+/**
  * Shuts down the agent.
  *
  * @param {object} [options]
@@ -1786,6 +1867,30 @@ API.prototype.setErrorGroupCallback = function setErrorGroupCallback(callback) {
   }
 
   this.agent.errors.errorGroupCallback = callback
+}
+
+/**
+ * Function for assigning metadata to all LLM events. This should only
+ * be called once in your application and before executing any openai, bedrock,
+ * langchain, generative AI methods.
+ *
+ * If passing in metadata via `api.recordLlmFeedbackEvent`, it will take precedence
+ * over what is assigned via this method.
+ *
+ * @param {object} metadata key/value metadata to be assigned to all LLM Events on creation
+ * @example
+ * newrelic.setLlmMetadata({ type: 'openai', framework: 'express', region: 'us' })
+ */
+API.prototype.setLlmMetadata = function setLlmMetadata(metadata) {
+  const metric = this.agent.metrics.getOrCreateMetric(NAMES.SUPPORTABILITY.API + '/setLlmMetadata')
+  metric.incrementCallCount()
+
+  if (!isSimpleObject(metadata)) {
+    logger.warn('metadata must be an object, not assigning LLM metadata.')
+    return
+  }
+
+  this.agent.llm.metadata = metadata
 }
 
 module.exports = API
