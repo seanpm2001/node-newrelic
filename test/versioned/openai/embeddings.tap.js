@@ -12,7 +12,7 @@
 
 const tap = require('tap')
 const helper = require('../../lib/agent_helper')
-const { assertSegments } = require('../../lib/metrics_helper')
+require('../../lib/metrics_helper')
 const { beforeHook, afterEachHook, afterHook } = require('./common')
 const {
   AI: { OPENAI }
@@ -45,11 +45,9 @@ tap.test('OpenAI instrumentation - embedding', (t) => {
       test.notOk(results.api_key, 'should remove api_key from user result')
       test.equal(results.model, 'text-embedding-ada-002-v2')
 
-      test.doesNotThrow(() => {
-        assertSegments(tx.trace.root, [OPENAI.EMBEDDING, [`External/${host}:${port}/embeddings`]], {
-          exact: false
-        })
-      }, 'should have expected segments')
+      t.assertSegments(tx.trace.root, [OPENAI.EMBEDDING, [`External/${host}:${port}/embeddings`]], {
+        exact: false
+      })
       tx.end()
       test.end()
     })
@@ -109,33 +107,6 @@ tap.test('OpenAI instrumentation - embedding', (t) => {
 
       test.equal(embedding[0].type, 'LlmEmbedding')
       test.match(embedding[1], expectedEmbedding, 'should match embedding message')
-      tx.end()
-      test.end()
-    })
-  })
-
-  t.test('should spread metadata across events if present on agent.llm.metadata', (test) => {
-    const { client, agent } = t.context
-    const api = helper.getAgentApi()
-    helper.runInTransaction(agent, async (tx) => {
-      const meta = { key: 'value', extended: true, vendor: 'overwriteMe', id: 'bogus' }
-      api.setLlmMetadata(meta)
-
-      await client.embeddings.create({
-        input: 'This is an embedding test.',
-        model: 'text-embedding-ada-002'
-      })
-
-      const events = agent.customEventAggregator.events.toArray()
-      const [[, testEvent]] = events
-      test.equal(testEvent.key, 'value')
-      test.equal(testEvent.extended, true)
-      test.equal(
-        testEvent.vendor,
-        'openAI',
-        'should not override properties of message with metadata'
-      )
-      test.not(testEvent.id, 'bogus', 'should not override properties of message with metadata')
       tx.end()
       test.end()
     })
