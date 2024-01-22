@@ -18,10 +18,13 @@ module.exports = {
           'Logger',
           'Agent',
           'Shim',
+          'MessageShim',
           'TraceSegment',
           'Transaction',
+          'Tracer',
           'Exception',
-          'MetricAggregator'
+          'MetricAggregator',
+          'EventEmitter'
         ]
       }
     ]
