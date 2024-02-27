@@ -2784,14 +2784,14 @@ tap.test('Shim', function (t) {
       t.end()
     })
 
-    t.test('should not replace existing keys', function (t) {
+    t.test('should update existing if existing is null', function (t) {
       const obj = { foo: null }
       const defaults = { foo: 1, bar: 2 }
       const defaulted = shim.setDefaults(obj, defaults)
 
       t.equal(obj, defaulted)
       t.not(obj, defaults)
-      t.same(defaulted, { foo: null, bar: 2 })
+      t.same(defaulted, { foo: 1, bar: 2 })
       t.end()
     })
   })
@@ -3103,6 +3103,31 @@ tap.test('Shim', function (t) {
       t.equal(shim._moduleRoot, root)
       t.end()
     })
+    t.end()
+  })
+
+  t.test('shim.specs', (t) => {
+    const agent = helper.loadMockedAgent()
+    t.teardown(() => {
+      helper.unloadAgent(agent)
+    })
+
+    const shim = new Shim(agent, 'test-mod')
+    t.ok(shim.specs, 'should assign specs to an instance of shim')
+    t.ok(shim.specs.ClassWrapSpec)
+    t.ok(shim.specs.MessageSpec)
+    t.ok(shim.specs.MessageSubscribeSpec)
+    t.ok(shim.specs.MiddlewareMounterSpec)
+    t.ok(shim.specs.MiddlewareSpec)
+    t.ok(shim.specs.OperationSpec)
+    t.ok(shim.specs.QuerySpec)
+    t.ok(shim.specs.RecorderSpec)
+    t.ok(shim.specs.RenderSpec)
+    t.ok(shim.specs.SegmentSpec)
+    t.ok(shim.specs.TransactionSpec)
+    t.ok(shim.specs.WrapSpec)
+    t.ok(shim.specs.params.DatastoreParameters)
+    t.ok(shim.specs.params.QueueMessageParameters)
     t.end()
   })
 })

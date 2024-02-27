@@ -1,6 +1,6 @@
 {
   "name": "newrelic",
-  "version": "11.10.4",
+  "version": "11.11.0",
   "author": "New Relic Node.js agent team <nodejs@newrelic.com>",
   "license": "Apache-2.0",
   "contributors": [
@@ -161,7 +161,7 @@
     "lint": "eslint ./*.{js,mjs} lib test bin examples",
     "lint:fix": "eslint --fix, ./*.{js,mjs} lib test bin examples",
     "lint:lockfile": "lockfile-lint --path package-lock.json --type npm --allowed-hosts npm --validate-https --validate-integrity",
-    "public-docs": "jsdoc -c ./jsdoc-conf.json --tutorials examples/shim api.js lib/shim/** lib/transaction/handle.js && cp examples/shim/*.png out/",
+    "public-docs": "jsdoc -c ./jsdoc-conf.json --tutorials examples/shim api.js lib/shim/* lib/shim/specs/params/* lib/transaction/handle.js && cp examples/shim/*.png out/",
     "publish-docs": "./bin/publish-docs.sh",
     "services": "docker compose up -d --wait",
     "smoke": "npm run ssl && time tap test/smoke/**/**/*.tap.js --timeout=180 --no-coverage",
@@ -195,6 +195,7 @@
     "@grpc/proto-loader": "^0.7.5",
     "@newrelic/aws-sdk": "^7.1.0",
     "@newrelic/koa": "^8.0.1",
+    "@newrelic/ritm": "^7.2.0",
     "@newrelic/security-agent": "^1.0.1",
     "@newrelic/superagent": "^7.0.1",
     "@tyriar/fibonacci-heap": "^2.0.7",
@@ -205,7 +206,6 @@
     "json-stringify-safe": "^5.0.0",
     "module-details-from-path": "^1.0.3",
     "readable-stream": "^3.6.1",
-    "require-in-the-middle": "^7.2.0",
     "semver": "^7.5.2",
     "winston-transport": "^4.5.0"
   },
