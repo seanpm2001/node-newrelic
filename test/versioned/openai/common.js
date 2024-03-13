@@ -39,7 +39,15 @@ common.afterHook = function afterHook(t) {
   t.context.agent && helper.unloadAgent(t.context.agent)
 }
 
-function assertChatCompletionMessages({ tx, chatMsgs, id, model, reqContent, resContent }) {
+function assertChatCompletionMessages({
+  tx,
+  chatMsgs,
+  id,
+  model,
+  reqContent,
+  resContent,
+  tokenUsage
+}) {
   const baseMsg = {
     'appName': 'New Relic for Node.js tests',
     'request_id': '49dbbffbd3c3f4612aa48def69059aad',
@@ -47,7 +55,7 @@ function assertChatCompletionMessages({ tx, chatMsgs, id, model, reqContent, res
     'span_id': tx.trace.root.children[0].id,
     'transaction_id': tx.id,
     'response.model': model,
-    'vendor': 'openAI',
+    'vendor': 'openai',
     'ingest_source': 'Node',
     'role': 'user',
     'is_response': false,
@@ -60,16 +68,25 @@ function assertChatCompletionMessages({ tx, chatMsgs, id, model, reqContent, res
       expectedChatMsg.sequence = 0
       expectedChatMsg.id = `${id}-0`
       expectedChatMsg.content = reqContent
+      if (tokenUsage) {
+        expectedChatMsg.token_count = 53
+      }
     } else if (msg[1].sequence === 1) {
       expectedChatMsg.sequence = 1
       expectedChatMsg.id = `${id}-1`
       expectedChatMsg.content = 'What does 1 plus 1 equal?'
+      if (tokenUsage) {
+        expectedChatMsg.token_count = 53
+      }
     } else {
       expectedChatMsg.sequence = 2
       expectedChatMsg.role = 'assistant'
       expectedChatMsg.id = `${id}-2`
       expectedChatMsg.content = resContent
       expectedChatMsg.is_response = true
+      if (tokenUsage) {
+        expectedChatMsg.token_count = 11
+      }
     }
 
     this.equal(msg[0].type, 'LlmChatCompletionMessage')
@@ -86,7 +103,7 @@ function assertChatCompletionSummary({ tx, model, chatSummary, tokenUsage, error
     'span_id': tx.trace.root.children[0].id,
     'transaction_id': tx.id,
     'response.model': model,
-    'vendor': 'openAI',
+    'vendor': 'openai',
     'ingest_source': 'Node',
     'request.model': model,
     'duration': tx.trace.root.children[0].getDurationInMillis(),

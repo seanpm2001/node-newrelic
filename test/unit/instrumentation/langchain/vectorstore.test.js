@@ -10,7 +10,7 @@ const helper = require('../../../lib/agent_helper')
 const GenericShim = require('../../../../lib/shim/shim')
 const sinon = require('sinon')
 
-test('langchain/core/tools unit tests', (t) => {
+test('langchain/core/vectorstore unit tests', (t) => {
   t.beforeEach(function (t) {
     const sandbox = sinon.createSandbox()
     const agent = helper.loadMockedAgent()
@@ -23,7 +23,7 @@ test('langchain/core/tools unit tests', (t) => {
     t.context.agent = agent
     t.context.shim = shim
     t.context.sandbox = sandbox
-    t.context.initialize = require('../../../../lib/instrumentation/langchain/tools')
+    t.context.initialize = require('../../../../lib/instrumentation/langchain/vectorstore')
   })
 
   t.afterEach(function (t) {
@@ -32,23 +32,24 @@ test('langchain/core/tools unit tests', (t) => {
   })
 
   function getMockModule() {
-    function StructuredTool() {}
-    StructuredTool.prototype.call = async function call() {}
-    return { StructuredTool }
+    function VectorStore() {}
+    VectorStore.prototype.similaritySearch = async function call() {}
+    return { VectorStore }
   }
+
   t.test('should not register instrumentation if ai_monitoring is false', (t) => {
     const { shim, agent, initialize } = t.context
-    const MockTool = getMockModule()
+    const MockVectorstore = getMockModule()
     agent.config.ai_monitoring.enabled = false
 
-    initialize(shim, MockTool)
+    initialize(shim, MockVectorstore)
     t.equal(shim.logger.debug.callCount, 1, 'should log 1 debug messages')
     t.equal(
       shim.logger.debug.args[0][0],
       'langchain instrumentation is disabled.  To enable set `config.ai_monitoring.enabled` to true'
     )
-    const isWrapped = shim.isWrapped(MockTool.StructuredTool.prototype.call)
-    t.equal(isWrapped, false, 'should not wrap tool create')
+    const isWrapped = shim.isWrapped(MockVectorstore.VectorStore.prototype.similaritySearch)
+    t.equal(isWrapped, false, 'should not wrap vectorstore similaritySearch')
     t.end()
   })
 
