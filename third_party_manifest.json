@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "Tue Mar 12 2024 14:41:39 GMT-0500 (Central Daylight Time)",
+  "lastUpdated": "Wed Mar 20 2024 08:44:47 GMT-0400 (Eastern Daylight Time)",
   "projectName": "New Relic Node Agent",
   "projectUrl": "https://github.com/newrelic/node-newrelic",
   "includeOptDeps": true,
@@ -111,7 +111,7 @@
     "@newrelic/security-agent@1.0.1": {
       "name": "@newrelic/security-agent",
       "version": "1.0.1",
-      "range": "^1.0.1",
+      "range": "1.0.1",
       "licenses": "UNKNOWN",
       "repoUrl": "https://github.com/newrelic/csec-node-agent",
       "versionedRepoUrl": "https://github.com/newrelic/csec-node-agent/tree/v1.0.1",

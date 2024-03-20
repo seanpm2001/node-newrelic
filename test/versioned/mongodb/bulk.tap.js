@@ -6,55 +6,47 @@
 'use strict'
 
 const common = require('./collection-common')
-const semver = require('semver')
-const { pkgVersion, STATEMENT_PREFIX } = require('./common')
+const { STATEMENT_PREFIX } = require('./common')
 
-// see test/versioned/mongodb/common.js
-if (semver.satisfies(pkgVersion, '>=3.2.4 <4.1.4')) {
-  common.test('unorderedBulkOp', function unorderedBulkOpTest(t, collection, verify) {
-    const bulk = collection.initializeUnorderedBulkOp()
-    bulk
-      .find({
-        i: 1
-      })
-      .updateOne({
-        $set: { foo: 'bar' }
-      })
-    bulk
-      .find({
-        i: 2
-      })
-      .updateOne({
-        $set: { foo: 'bar' }
-      })
-
-    bulk.execute(function done(err) {
-      t.error(err)
-      verify(null, [`${STATEMENT_PREFIX}/unorderedBulk/batch`, 'Callback: done'], ['unorderedBulk'])
+common.test('unorderedBulkOp', async function unorderedBulkOpTest(t, collection, verify) {
+  const bulk = collection.initializeUnorderedBulkOp()
+  bulk
+    .find({
+      i: 1
     })
-  })
-
-  common.test('orderedBulkOp', function unorderedBulkOpTest(t, collection, verify) {
-    const bulk = collection.initializeOrderedBulkOp()
-    bulk
-      .find({
-        i: 1
-      })
-      .updateOne({
-        $set: { foo: 'bar' }
-      })
-
-    bulk
-      .find({
-        i: 2
-      })
-      .updateOne({
-        $set: { foo: 'bar' }
-      })
-
-    bulk.execute(function done(err) {
-      t.error(err)
-      verify(null, [`${STATEMENT_PREFIX}/orderedBulk/batch`, 'Callback: done'], ['orderedBulk'])
+    .updateOne({
+      $set: { foo: 'bar' }
     })
-  })
-}
+  bulk
+    .find({
+      i: 2
+    })
+    .updateOne({
+      $set: { foo: 'bar' }
+    })
+
+  await bulk.execute()
+  verify(null, [`${STATEMENT_PREFIX}/unorderedBulk/batch`], ['unorderedBulk'], { strict: false })
+})
+
+common.test('orderedBulkOp', async function unorderedBulkOpTest(t, collection, verify) {
+  const bulk = collection.initializeOrderedBulkOp()
+  bulk
+    .find({
+      i: 1
+    })
+    .updateOne({
+      $set: { foo: 'bar' }
+    })
+
+  bulk
+    .find({
+      i: 2
+    })
+    .updateOne({
+      $set: { foo: 'bar' }
+    })
+
+  await bulk.execute()
+  verify(null, [`${STATEMENT_PREFIX}/orderedBulk/batch`], ['orderedBulk'], { strict: false })
+})
