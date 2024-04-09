@@ -19,7 +19,19 @@
     },
     {
       "engines": {
-        "node": ">=16"
+        "node": "16"
+      },
+      "dependencies": {
+        "@elastic/elasticsearch": ">=7.16.0",
+        "@elastic/transport": "8.4.1"
+      },
+      "files": [
+        "elasticsearch.tap.js"
+      ]
+    },
+    {
+      "engines": {
+        "node": ">=18"
       },
       "dependencies": {
         "@elastic/elasticsearch": ">=7.16.0"

@@ -712,7 +712,7 @@ This product includes source derived from [@newrelic/aws-sdk](https://github.com
 
 ### @newrelic/koa
 
-This product includes source derived from [@newrelic/koa](https://github.com/newrelic/node-newrelic-koa) ([v9.0.0](https://github.com/newrelic/node-newrelic-koa/tree/v9.0.0)), distributed under the [Apache-2.0 License](https://github.com/newrelic/node-newrelic-koa/blob/v9.0.0/LICENSE):
+This product includes source derived from [@newrelic/koa](https://github.com/newrelic/node-newrelic-koa) ([v9.1.0](https://github.com/newrelic/node-newrelic-koa/tree/v9.1.0)), distributed under the [Apache-2.0 License](https://github.com/newrelic/node-newrelic-koa/blob/v9.1.0/LICENSE):
 
 ```
 Apache License
@@ -951,7 +951,7 @@ SOFTWARE.
 
 ### @newrelic/security-agent
 
-This product includes source derived from [@newrelic/security-agent](https://github.com/newrelic/csec-node-agent) ([v1.0.1](https://github.com/newrelic/csec-node-agent/tree/v1.0.1)), distributed under the [UNKNOWN License](https://github.com/newrelic/csec-node-agent/blob/v1.0.1/LICENSE):
+This product includes source derived from [@newrelic/security-agent](https://github.com/newrelic/csec-node-agent) ([v1.1.1](https://github.com/newrelic/csec-node-agent/tree/v1.1.1)), distributed under the [UNKNOWN License](https://github.com/newrelic/csec-node-agent/blob/v1.1.1/LICENSE):
 
 ```
 ## New Relic Software License v1.0
