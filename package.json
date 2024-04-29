@@ -1,6 +1,6 @@
 {
   "name": "newrelic",
-  "version": "11.15.0",
+  "version": "11.16.0",
   "author": "New Relic Node.js agent team <nodejs@newrelic.com>",
   "license": "Apache-2.0",
   "contributors": [
@@ -157,6 +157,7 @@
     "docker-env": "./bin/docker-env-vars.sh",
     "docs": "npm ci && jsdoc -c ./jsdoc-conf.json --private -r .",
     "integration": "npm run prepare-test && npm run sub-install && time c8 -o ./coverage/integration tap --test-regex='(\\/|^test\\/integration\\/.*\\.tap\\.js)$' --timeout=600 --no-coverage --reporter classic",
+    "integration:esm": "time c8 -o ./coverage/integration-esm tap --node-arg='--loader=./esm-loader.mjs' --test-regex='(test\\/integration\\/.*\\.tap\\.mjs)$' --timeout=600 --no-coverage --reporter classic",
     "prepare-test": "npm run ssl && npm run docker-env",
     "lint": "eslint ./*.{js,mjs} lib test bin examples",
     "lint:fix": "eslint --fix, ./*.{js,mjs} lib test bin examples",
@@ -193,7 +194,6 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.9.4",
     "@grpc/proto-loader": "^0.7.5",
-    "@newrelic/aws-sdk": "^7.3.0",
     "@newrelic/ritm": "^7.2.0",
     "@newrelic/security-agent": "^1.1.1",
     "@tyriar/fibonacci-heap": "^2.0.7",
@@ -213,14 +213,19 @@
     "@prisma/prisma-fmt-wasm": "^4.17.0-16.27eb2449f178cd9fe1a4b892d732cc4795f75085"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.556.0",
+    "@aws-sdk/s3-request-presigner": "^3.556.0",
     "@koa/router": "^12.0.1",
     "@newrelic/eslint-config": "^0.3.0",
     "@newrelic/newrelic-oss-cli": "^0.1.2",
     "@newrelic/test-utilities": "^8.5.0",
     "@octokit/rest": "^18.0.15",
     "@slack/bolt": "^3.7.0",
+    "@smithy/eventstream-codec": "^2.2.0",
+    "@smithy/util-utf8": "^2.3.0",
     "ajv": "^6.12.6",
     "async": "^3.2.4",
+    "aws-sdk": "^2.1604.0",
     "c8": "^8.0.1",
     "clean-jsdoc-theme": "^4.2.18",
     "commander": "^7.0.0",
@@ -250,7 +255,7 @@
     "rimraf": "^2.6.3",
     "should": "*",
     "sinon": "^4.5.0",
-    "superagent": "^8.1.2",
+    "superagent": "^9.0.1",
     "tap": "^16.3.4",
     "temp": "^0.8.1",
     "when": "*"
