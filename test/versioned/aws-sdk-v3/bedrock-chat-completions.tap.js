@@ -11,7 +11,6 @@ const helper = require('../../lib/agent_helper')
 require('../../lib/metrics_helper')
 const createAiResponseServer = require('../../lib/aws-server-stubs/ai-server')
 const { FAKE_CREDENTIALS } = require('../../lib/aws-server-stubs')
-const { version: pkgVersion } = require('@smithy/smithy-client/package.json')
 const { DESTINATIONS } = require('../../../lib/config/attribute-filter')
 
 const requests = {
@@ -227,9 +226,10 @@ tap.afterEach(async (t) => {
     const command = new bedrock.InvokeModelCommand(input)
     helper.runInTransaction(agent, async (tx) => {
       await client.send(command)
-      const metrics = agent.metrics.getOrCreateMetric(
-        `Supportability/Nodejs/ML/Bedrock/${pkgVersion}`
-      )
+      const metrics = getPrefixedMetric({
+        agent,
+        metricPrefix: 'Supportability/Nodejs/ML/Bedrock'
+      })
       t.equal(metrics.callCount > 0, true)
       tx.end()
       t.end()
@@ -574,9 +574,10 @@ tap.test('should not instrument stream when disabled', (t) => {
     t.equal(events.length, 0, 'should not create Llm events when streaming is disabled')
     const attributes = tx.trace.attributes.get(DESTINATIONS.TRANS_EVENT)
     t.equal(attributes.llm, true, 'should assign llm attribute to transaction trace')
-    const metrics = agent.metrics.getOrCreateMetric(
-      `Supportability/Nodejs/ML/Bedrock/${pkgVersion}`
-    )
+    const metrics = getPrefixedMetric({
+      agent,
+      metricPrefix: 'Supportability/Nodejs/ML/Bedrock'
+    })
     t.equal(metrics.callCount > 0, true, 'should set framework metric')
     const supportabilityMetrics = agent.metrics.getOrCreateMetric(
       `Supportability/Nodejs/ML/Streaming/Disabled`
@@ -618,3 +619,12 @@ tap.test('should utilize tokenCountCallback when set', (t) => {
     t.end()
   })
 })
+
+function getPrefixedMetric({ agent, metricPrefix }) {
+  for (const [key, value] of Object.entries(agent.metrics._metrics.unscoped)) {
+    if (key.startsWith(metricPrefix) === false) {
+      continue
+    }
+    return value
+  }
+}
