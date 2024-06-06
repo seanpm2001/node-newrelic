@@ -9,7 +9,6 @@ const path = require('path')
 const fs = require('fs').promises
 const Agent = require('../../lib/agent')
 const API = require('../../api')
-const params = require('../lib/params')
 const zlib = require('zlib')
 const copy = require('../../lib/util/copy')
 const { defaultAttributeConfig } = require('./fixtures')
@@ -259,12 +258,13 @@ helper.loadTestAgent = (t, conf, setState = true) => {
 
 /**
  * Create a transactional scope in which instrumentation that will only add
- * trace segments to existing transactions will funciton.
+ * trace segments to existing transactions will function.
  *
  * If the agent hasn't been started, set to a state that can collect transactions.
  *
  * @param {Agent} agent The agent whose tracer should be used to create the
  *                      transaction.
+ * @param {string} [type='web'] Indicates the class of the transaction.
  * @param {Function} callback The function to be run within the transaction.
  */
 helper.runInTransaction = (agent, type, callback) => {
@@ -310,21 +310,6 @@ helper.runInSegment = (agent, name, callback) => {
   const tracer = agent.tracer
 
   return tracer.addSegment(name, null, null, null, callback)
-}
-
-/**
- * Stub to bootstrap a memcached instance
- *
- * @param {Function} callback The operations to be performed while the server
- *                            is running.
- */
-helper.bootstrapMemcached = (callback) => {
-  const Memcached = require('memcached')
-  const memcached = new Memcached(params.memcached_host + ':' + params.memcached_port)
-  memcached.flush((err) => {
-    memcached.end()
-    callback(err)
-  })
 }
 
 /**
