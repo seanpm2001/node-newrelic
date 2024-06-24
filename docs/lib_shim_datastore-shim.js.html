@@ -378,10 +378,10 @@ function parseQuery(query, nodule) {
   // strip enclosing special characters from collection (table) name
   if (typeof collection === 'string' &amp;&amp; collection.length > 2) {
     if (/^[\[{'"`]/.test(collection)) {
-      collection = collection.substr(1)
+      collection = collection.substring(1)
     }
     if (/[\]}'"`]$/.test(collection)) {
-      collection = collection.substr(0, collection.length - 1)
+      collection = collection.substring(0, collection.length - 1)
     }
   }
 
